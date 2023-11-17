@@ -1,0 +1,32 @@
+{
+	"name": "mini-react",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"lint": "eslint --ext .ts,.jsx,.tsx --fix --quiet ./packages"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/rude-guy/mini-react.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/rude-guy/mini-react/issues"
+	},
+	"homepage": "https://github.com/rude-guy/mini-react#readme",
+	"devDependencies": {
+		"@commitlint/cli": "^18.4.2",
+		"@commitlint/config-conventional": "^18.4.2",
+		"@typescript-eslint/eslint-plugin": "^6.11.0",
+		"@typescript-eslint/parser": "^6.11.0",
+		"commitlint": "^18.4.2",
+		"eslint": "^8.53.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-prettier": "^5.0.1",
+		"husky": "^8.0.3",
+		"prettier": "^3.1.0"
+	}
+}
