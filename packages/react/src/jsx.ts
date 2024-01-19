@@ -1,7 +1,18 @@
 import { REACT_ELEMENT_SYMBOL } from 'share/ReactSymbols';
-import { ReactElementType, ElementType, Key, Ref, Props } from 'share/ReactTypes';
+import {
+  ReactElementType,
+  ElementType,
+  Key,
+  Ref,
+  Props,
+} from 'share/ReactTypes';
 
-export const ReactElement = function (type: ElementType, key: Key, ref: Ref, props: Props): ReactElementType {
+export const ReactElement = function (
+  type: ElementType,
+  key: Key,
+  ref: Ref,
+  props: Props
+): ReactElementType {
   const element = {
     $$typeof: REACT_ELEMENT_SYMBOL,
     type,
@@ -13,7 +24,11 @@ export const ReactElement = function (type: ElementType, key: Key, ref: Ref, pro
   return element;
 };
 
-export const jsx = function (type: ElementType, config: any, ...maybeChildren: any) {
+export const jsx = function (
+  type: ElementType,
+  config: any,
+  ...maybeChildren: any
+) {
   const props: Props = {};
   let key: Key = null;
   let ref: Ref = null;
@@ -45,4 +60,26 @@ export const jsx = function (type: ElementType, config: any, ...maybeChildren: a
   return ReactElement(type, key, ref, props);
 };
 
-export const jsxDev = jsx;
+export const jsxDEV = function (type: ElementType, config: any) {
+  const props: Props = {};
+  let key: Key = null;
+  let ref: Ref = null;
+  for (const prop in config) {
+    const val = config[prop];
+    if (prop === 'key') {
+      if (val !== undefined) {
+        key = `${val}`;
+      }
+      continue;
+    }
+    if (prop === 'ref') {
+      if (val !== undefined) {
+        ref = val;
+      }
+    }
+    if (Object.hasOwn(config, prop)) {
+      props[prop] = val;
+    }
+  }
+  return ReactElement(type, key, ref, props);
+};
