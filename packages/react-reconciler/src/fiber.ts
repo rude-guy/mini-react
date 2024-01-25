@@ -1,4 +1,4 @@
-import { Key, Props, ReactElementType } from 'share/ReactTypes';
+import { Key, Props, ReactElementType } from 'shared/ReactTypes';
 import { FunctionComponent, HostComponent, WorkTag } from './workTags';
 import { Flags, NoFlags } from './fiberFlags';
 import { Container } from 'hostConfig';

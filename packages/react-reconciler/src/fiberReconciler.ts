@@ -7,7 +7,7 @@ import {
   createUpdateQueue,
   enqueueUpdate,
 } from './updateQueue';
-import { ReactElementType } from 'share/ReactTypes';
+import { ReactElementType } from 'shared/ReactTypes';
 import { scheduleUpdateOnFiber } from './workLoop';
 
 export const createContainer = (container: Container) => {

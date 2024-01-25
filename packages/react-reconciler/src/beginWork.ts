@@ -1,4 +1,4 @@
-import { ReactElementType } from 'share/ReactTypes';
+import { ReactElementType } from 'shared/ReactTypes';
 import { FiberNode } from './fiber';
 import { UpdateQueue, processUpdateQueue } from './updateQueue';
 import { HostComponent, HostRoot, HostText } from './workTags';

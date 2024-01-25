@@ -4,7 +4,7 @@
   "description": "react 公用方法",
   "module": "index.ts",
   "dependencies": {
-    "share": "workspace:*"
+    "shared": "workspace:*"
   },
   "keywords": [],
   "author": "",
