@@ -1,4 +1,8 @@
-import { getPackageJson, resolvePkgPath, getBaseRollupPlugins } from './utils';
+import {
+  getPackageJson,
+  resolvePkgPath,
+  getBaseRollupPlugins,
+} from './utils.js';
 import generatePackageJson from 'rollup-plugin-generate-package-json';
 import alias from '@rollup/plugin-alias';
 
