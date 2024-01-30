@@ -77,6 +77,7 @@ export const jsxDEV = function (type: ElementType, config: any) {
       if (val !== undefined) {
         ref = val;
       }
+      continue;
     }
     if (Object.hasOwn(config, prop)) {
       props[prop] = val;

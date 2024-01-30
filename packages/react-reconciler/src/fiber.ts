@@ -81,7 +81,7 @@ export const createWorkInProgress = (
     current.alternate = wip;
   } else {
     // update
-    wip.pendingProps = current.pendingProps;
+    wip.pendingProps = pendingProps;
     wip.flags = NoFlags;
     wip.subTreeFlags = NoFlags;
     wip.deletions = null;
