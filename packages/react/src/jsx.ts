@@ -1,4 +1,4 @@
-import { REACT_ELEMENT_SYMBOL } from 'shared/ReactSymbols';
+import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols';
 import {
   ReactElementType,
   ElementType,
@@ -14,7 +14,7 @@ export const ReactElement = function (
   props: Props
 ): ReactElementType {
   const element = {
-    $$typeof: REACT_ELEMENT_SYMBOL,
+    $$typeof: REACT_ELEMENT_TYPE,
     type,
     key,
     ref,
@@ -44,6 +44,7 @@ export const jsx = function (
       if (val !== undefined) {
         ref = val;
       }
+      continue;
     }
     if (Object.hasOwn(config, prop)) {
       props[prop] = val;
@@ -83,3 +84,11 @@ export const jsxDEV = function (type: ElementType, config: any) {
   }
   return ReactElement(type, key, ref, props);
 };
+
+export function isValidElement(obj: any) {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    obj.$$typeof === REACT_ELEMENT_TYPE
+  );
+}

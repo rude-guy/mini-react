@@ -1,6 +1,6 @@
 import { ReactElementType } from 'shared/ReactTypes';
 import { FiberNode, createFiberFormElement } from './fiber';
-import { REACT_ELEMENT_SYMBOL } from 'shared/ReactSymbols';
+import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols';
 import { HostText } from './workTags';
 import { Placement } from './fiberFlags';
 
@@ -43,7 +43,7 @@ function ChildReconciler(shouldTrackEffect: boolean) {
     // 判断当前的 fiber 类型
     if (typeof newChild === 'object' && newChild !== null) {
       switch (newChild.$$typeof) {
-        case REACT_ELEMENT_SYMBOL:
+        case REACT_ELEMENT_TYPE:
           return placeSingleChild(
             reconcileSingleElement(returnFiber, currentFiber, newChild)
           );

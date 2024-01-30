@@ -17,17 +17,18 @@ const pkgDistPath = resolvePkgPath(name, true);
 const basePlugins = getBaseRollupPlugins();
 
 export default [
+  // react-dom
   {
     input: `${pkgPath}/${module}`,
     output: [
       {
         file: `${pkgDistPath}/index.js`,
-        name: 'index.js',
+        name: 'ReactDOM',
         format: 'umd',
       },
       {
         file: `${pkgDistPath}/client.js`,
-        name: 'client.js',
+        name: 'client',
         format: 'umd',
       },
     ],
@@ -53,5 +54,18 @@ export default [
         }),
       }),
     ],
+  },
+  // react-test-utils
+  {
+    input: `${pkgPath}/test-utils.ts`,
+    output: [
+      {
+        file: `${pkgDistPath}/test-utils.js`,
+        name: 'testUtils.js',
+        format: 'umd',
+      },
+    ],
+    external: ['react', 'react-dom'],
+    plugins: [...basePlugins],
   },
 ];
