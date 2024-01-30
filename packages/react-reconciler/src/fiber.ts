@@ -24,6 +24,7 @@ export class FiberNode {
 
   flags: Flags;
   subTreeFlags: Flags;
+  deletions: FiberNode[] | null;
 
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     // 实例
@@ -50,6 +51,7 @@ export class FiberNode {
     // 副作用
     this.flags = NoFlags;
     this.subTreeFlags = NoFlags;
+    this.deletions = null;
   }
 }
 
@@ -82,6 +84,7 @@ export const createWorkInProgress = (
     wip.pendingProps = current.pendingProps;
     wip.flags = NoFlags;
     wip.subTreeFlags = NoFlags;
+    wip.deletions = null;
   }
   wip.type = current.type;
   wip.updateQueue = current.updateQueue;
