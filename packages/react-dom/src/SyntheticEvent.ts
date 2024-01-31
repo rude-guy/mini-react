@@ -85,7 +85,7 @@ function triggerEventFlow(paths: EventCallback[], se: SyntheticEvent) {
   }
 }
 
-function getEventCallbackNameFormEventType(
+function getEventCallbackNameFromEventType(
   eventType: string
 ): string[] | undefined {
   return {
@@ -106,7 +106,7 @@ function collectPaths(
   while (targetElement && targetElement !== container) {
     const props = targetElement[elementPropsKey];
     if (props) {
-      const callbackNameList = getEventCallbackNameFormEventType(eventType);
+      const callbackNameList = getEventCallbackNameFromEventType(eventType);
       if (callbackNameList) {
         callbackNameList.forEach((callbackName, i) => {
           const eventCallback = props[callbackName];

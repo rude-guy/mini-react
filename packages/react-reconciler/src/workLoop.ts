@@ -14,12 +14,12 @@ function prepareFreshStack(root: FiberRootNode) {
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
   // TODO:调度更新
   // fiberRootNode
-  const root = markUpdateFormFiberToRoot(fiber);
+  const root = markUpdateFromFiberToRoot(fiber);
   renderRoot(root);
 }
 
 // 向上遍历找到根节点
-function markUpdateFormFiberToRoot(fiber: FiberNode) {
+function markUpdateFromFiberToRoot(fiber: FiberNode) {
   let node = fiber;
   let parent = fiber.return;
   while (parent !== null) {
@@ -90,12 +90,12 @@ function commitRoot(root: FiberRootNode) {
 function workLoop() {
   while (workInProgress !== null) {
     // 执行工作
-    performUnitOfWork(workInProgress);
+    perFromUnitOfWork(workInProgress);
   }
 }
 
 // 执行工作单元 -> 递
-function performUnitOfWork(fiber: FiberNode) {
+function perFromUnitOfWork(fiber: FiberNode) {
   const next = beginWork(fiber);
   // 执行完后，将pendingProps -> memoizedProps
   fiber.memoizedProps = fiber.pendingProps;
