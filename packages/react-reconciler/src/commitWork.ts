@@ -76,37 +76,56 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
   }
 };
 
+function recordHostChildrenToDelete(
+  childToDelete: FiberNode[],
+  unmountFiber: FiberNode
+) {
+  // 1. 找到第一个 root host 节点
+  const lastOne = childToDelete[childToDelete.length - 1];
+  if (!lastOne) {
+    childToDelete.push(unmountFiber);
+  } else {
+    let node = lastOne.sibling;
+    // 2. 没找到一个 host 节点，判断下这个节点是不是 1 找到那个节点的兄弟节点
+    while (node !== null) {
+      if (node === unmountFiber) {
+        childToDelete.push(unmountFiber);
+        break;
+      }
+      node = node.sibling;
+    }
+  }
+}
+
 function commitDeletion(childToDelete: FiberNode) {
-  let rootHostNode: FiberNode | null = null;
+  const rootChildrenToDelete: FiberNode[] = [];
 
   // 递归子树
   commitNestedComponent(childToDelete, (unmountFiber) => {
     switch (unmountFiber.tag) {
       case HostComponent:
-        if (rootHostNode === null) {
-          rootHostNode = unmountFiber;
-        }
         // TODO: 解绑ref
+        recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
         return;
       case HostText:
-        if (rootHostNode === null) {
-          rootHostNode = unmountFiber;
-        }
+        recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
         return;
       case FunctionComponent:
         // TODO: useEffect unmount
         break;
       default:
         if (__DEV__) {
-          console.error('未处理的unmount类型', unmountFiber);
+          console.warn('未处理的unmount类型', unmountFiber);
         }
     }
   });
 
-  if (rootHostNode !== null) {
+  if (rootChildrenToDelete.length) {
     const hostParent = getHostParent(childToDelete);
     if (hostParent !== null) {
-      removeChild((rootHostNode as FiberNode).stateNode, hostParent);
+      rootChildrenToDelete.forEach((node) =>
+        removeChild(node.stateNode, hostParent)
+      );
     }
   }
   childToDelete.return = null;

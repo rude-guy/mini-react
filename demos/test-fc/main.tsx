@@ -9,7 +9,15 @@ const App = () => {
       ? [<li key={'1'}>1</li>, <li key={'2'}>2</li>, <li key={'3'}>3</li>]
       : [<li key={'3'}>3</li>, <li key={'2'}>2</li>, <li key={'1'}>1</li>];
 
-  return <div onClick={() => setNum((n) => n + 1)}>{arr}</div>;
+  return (
+    <ul onClick={() => setNum((n) => n + 1)}>
+      <>
+        <li>4</li>
+        <li>5</li>
+      </>
+      {arr}
+    </ul>
+  );
 };
 
 const Child = () => {
