@@ -1,7 +1,9 @@
 import {
   Container,
+  Instance,
   appendChildToContainer,
   commitUpdate,
+  insertChildToContainer,
   removeChild,
 } from 'hostConfig';
 import { FiberNode, FiberRootNode } from './fiber';
@@ -149,13 +151,59 @@ const commitPlacement = (finishedWork: FiberNode) => {
 
   // parent DOM
   const hostParent = getHostParent(finishedWork);
+
+  // host sibling
+  const hostSibling = getHostSibling(finishedWork);
+
   if (hostParent) {
     // finishedWork -> DOM
-    appendPlacemenNodeIntoContainer(finishedWork, hostParent);
+    insertOrAppendPlacemenNodeIntoContainer(
+      finishedWork,
+      hostParent,
+      hostSibling
+    );
   }
 };
 
-const getHostParent = (fiber: FiberNode): Container | null => {
+function getHostSibling(fiber: FiberNode) {
+  let node: FiberNode = fiber;
+
+  findSibling: while (true) {
+    // HostComponent和HostRoot可以作为节点挂载的父元素调用append
+    while (node.sibling === null) {
+      const parent = node.return;
+      if (
+        parent === null ||
+        parent.tag === HostComponent ||
+        parent.tag === HostRoot
+      ) {
+        return null;
+      }
+      node = parent;
+    }
+    node.sibling.return = node.return;
+    node = node.sibling;
+    while (node.tag !== HostComponent && node.tag !== HostText) {
+      if ((node.flags & Placement) !== NoFlags) {
+        // 向下遍历，node flags必须为稳定的节点
+        continue findSibling;
+      }
+
+      if (node.child === null) {
+        continue findSibling;
+      } else {
+        node.child.return = node;
+        node = node.child;
+      }
+    }
+
+    if ((node.flags & Placement) === NoFlags) {
+      return node.stateNode;
+    }
+  }
+}
+
+function getHostParent(fiber: FiberNode): Container | null {
   let parent = fiber.return;
 
   while (parent !== null) {
@@ -175,26 +223,31 @@ const getHostParent = (fiber: FiberNode): Container | null => {
   }
 
   return null;
-};
+}
 
-function appendPlacemenNodeIntoContainer(
+function insertOrAppendPlacemenNodeIntoContainer(
   finishedWork: FiberNode,
-  hostParent: Container
+  hostParent: Container,
+  before?: Instance
 ) {
   // fiber Host
   if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
-    appendChildToContainer(hostParent, finishedWork.stateNode);
+    if (before) {
+      insertChildToContainer(finishedWork.stateNode, hostParent, before);
+    } else {
+      appendChildToContainer(hostParent, finishedWork.stateNode);
+    }
     return;
   }
 
   const child = finishedWork.child;
 
   if (child !== null) {
-    appendPlacemenNodeIntoContainer(child, hostParent);
+    insertOrAppendPlacemenNodeIntoContainer(child, hostParent);
 
     let sibling = child.sibling;
     while (sibling !== null) {
-      appendPlacemenNodeIntoContainer(sibling, hostParent);
+      insertOrAppendPlacemenNodeIntoContainer(sibling, hostParent);
       sibling = sibling.sibling;
     }
   }

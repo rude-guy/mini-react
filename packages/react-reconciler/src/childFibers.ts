@@ -156,7 +156,7 @@ function ChildReconciler(shouldTrackEffect: boolean) {
       }
 
       if (!shouldTrackEffect) {
-        return;
+        continue;
       }
 
       const current = newFiber.alternate;
