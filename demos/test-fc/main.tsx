@@ -10,12 +10,14 @@ const App = () => {
       : [<li key={'3'}>3</li>, <li key={'2'}>2</li>, <li key={'1'}>1</li>];
 
   return (
-    <ul onClick={() => setNum((n) => n + 1)}>
-      <>
-        <li>4</li>
-        <li>5</li>
-      </>
-      {arr}
+    <ul
+      onClick={() => {
+        setNum((n) => n + 1);
+        setNum((n) => n + 1);
+        setNum((n) => n + 1);
+      }}
+    >
+      {num}
     </ul>
   );
 };

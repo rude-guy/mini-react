@@ -18,6 +18,7 @@ export function flushSyncCallbacks() {
       console.error('flushSyncCallbacks error:', e);
     } finally {
       isFlushingSyncQueue = false;
+      syncQueue = null; // 清空队列
     }
   }
 }
