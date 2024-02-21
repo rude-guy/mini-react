@@ -1,30 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 
-const App = () => {
-  const [num, setNum] = useState(100);
+function App() {
+  const [num, updateNum] = useState(0);
+  useEffect(() => {
+    console.log('App mount');
+  }, []);
 
-  const arr =
-    num % 2 === 0
-      ? [<li key={'1'}>1</li>, <li key={'2'}>2</li>, <li key={'3'}>3</li>]
-      : [<li key={'3'}>3</li>, <li key={'2'}>2</li>, <li key={'1'}>1</li>];
+  useEffect(() => {
+    console.log('num change create', num);
+    return () => {
+      console.log('num change destroy', num);
+    };
+  }, [num]);
 
   return (
-    <ul
-      onClick={() => {
-        setNum((n) => n + 1);
-        setNum((n) => n + 1);
-        setNum((n) => n + 1);
-      }}
-    >
-      {num}
-    </ul>
+    <div onClick={() => updateNum(num + 1)}>
+      {num === 0 ? <Child /> : 'noop'}
+    </div>
   );
-};
+}
 
-const Child = () => {
-  return <span>word</span>;
-};
+function Child() {
+  useEffect(() => {
+    console.log('child mount');
+    return () => {
+      console.log('child unmount');
+    };
+  }, []);
+  return 'i am child';
+}
 
 const root = document.querySelector('#root')!;
 

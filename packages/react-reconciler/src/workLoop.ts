@@ -1,9 +1,19 @@
 import { scheduleMicroTask } from 'hostConfig';
 import { beginWork } from './beginWork';
-import { commitMutationEffect } from './commitWork';
+import {
+  commitHookEffectListCreate,
+  commitHookEffectListDestroy,
+  commitHookEffectListUnmount,
+  commitMutationEffect,
+} from './commitWork';
 import { completeWork } from './completeWork';
-import { FiberNode, FiberRootNode, createWorkInProgress } from './fiber';
-import { MutationMask, NoFlags } from './fiberFlags';
+import {
+  FiberNode,
+  FiberRootNode,
+  PendingPassiveEffect,
+  createWorkInProgress,
+} from './fiber';
+import { MutationMask, NoFlags, PassiveMask } from './fiberFlags';
 import {
   Lane,
   NoLane,
@@ -14,9 +24,15 @@ import {
 } from './fiberLanes';
 import { flushSyncCallbacks, scheduleSyncCallback } from './syncTaskQueue';
 import { HostRoot } from './workTags';
+import {
+  unstable_scheduleCallback as scheduleCallback,
+  unstable_NormalPriority as NormalPriority,
+} from 'scheduler';
+import { HookHasEffect, Passive } from './hookEffectTags';
 
 let workInProgress: FiberNode | null = null;
 let wipRootRenderLane: Lane = NoLane;
+let rootDoesHasPassiveEffects = false;
 
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {
   workInProgress = createWorkInProgress(root.current, {});
@@ -125,6 +141,21 @@ function commitRoot(root: FiberRootNode) {
   root.finishedLane = NoLane;
   markRootFinished(root, lane);
 
+  if (
+    (finishedWork.flags & PassiveMask) !== NoFlags ||
+    (finishedWork.subTreeFlags & PassiveMask) !== NoFlags
+  ) {
+    if (!rootDoesHasPassiveEffects) {
+      rootDoesHasPassiveEffects = true;
+      // 调度副作用
+      scheduleCallback(NormalPriority, () => {
+        // 执行副作用
+        flushPassiveEffects(root.pendingPassiveEffect);
+        return;
+      });
+    }
+  }
+
   /** 判断3个子阶段是否存在需要执行的操作 */
 
   // root flags | root subTreeFlags
@@ -137,10 +168,30 @@ function commitRoot(root: FiberRootNode) {
     // mutation
     // layout
     root.current = finishedWork;
-    commitMutationEffect(finishedWork);
+    commitMutationEffect(finishedWork, root);
   } else {
     root.current = finishedWork;
   }
+
+  rootDoesHasPassiveEffects = false;
+  ensureRootIsScheduled(root);
+}
+
+function flushPassiveEffects(pendingPassiveEffect: PendingPassiveEffect) {
+  pendingPassiveEffect.unmount.forEach((effect) => {
+    commitHookEffectListUnmount(Passive, effect);
+  });
+  pendingPassiveEffect.unmount = [];
+
+  pendingPassiveEffect.update.forEach((effect) => {
+    commitHookEffectListDestroy(Passive | HookHasEffect, effect);
+  });
+
+  pendingPassiveEffect.update.forEach((effect) => {
+    commitHookEffectListCreate(Passive | HookHasEffect, effect);
+  });
+  pendingPassiveEffect.update = [];
+  flushSyncCallbacks();
 }
 
 function workLoop() {
