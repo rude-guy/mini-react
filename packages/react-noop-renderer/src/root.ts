@@ -5,6 +5,7 @@ import {
 import { ReactElementType } from 'shared/ReactTypes';
 import { Container, Instance } from './hostConfig';
 import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from 'shared/ReactSymbols';
+import * as Scheduler from 'scheduler';
 
 let idCounter = 0;
 
@@ -24,7 +25,7 @@ export function createRoot() {
     return null;
   }
 
-  function getChildrenAsJsx(root: Container) {
+  function getChildrenAsJSX(root: Container) {
     const children = childToJsx(root.children);
     if (Array.isArray(children)) {
       return {
@@ -87,14 +88,15 @@ export function createRoot() {
   }
 
   return {
+    _Scheduler: Scheduler,
     render(element: ReactElementType) {
       return updateContainer(element, root);
     },
     getChildren() {
       return getChildren(container);
     },
-    getChildrenAsJsx() {
-      return getChildrenAsJsx(container);
+    getChildrenAsJSX() {
+      return getChildrenAsJSX(container);
     },
   };
 }
