@@ -27,9 +27,9 @@ export const completeWork = (wip: FiberNode) => {
   switch (wip.tag) {
     case HostComponent:
       if (current !== null && wip.stateNode) {
-        // update
+        // TODO: update
         // props 是否变化
-        updateFiberProps(wip.stateNode, newProps);
+        markUpdate(wip);
       } else {
         // mount
         // 1. 构建DOM
