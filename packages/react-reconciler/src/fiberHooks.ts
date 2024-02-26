@@ -14,6 +14,7 @@ import { scheduleUpdateOnFiber } from './workLoop';
 import { Lane, NoLane, requestUpdateLane } from './fiberLanes';
 import { Flags, PassiveEffect } from './fiberFlags';
 import { HookHasEffect, Passive } from './hookEffectTags';
+import currentBatchConfig from 'react/src/currentBatchConfig';
 
 let currentlyRenderingFiber: FiberNode | null = null;
 let workInProgressHook: Hook | null = null;
@@ -78,11 +79,13 @@ export function renderWithHooks(wip: FiberNode, lane: Lane) {
 const hooksDispatcherOnMount: Dispatcher = {
   useState: mountState,
   useEffect: mountEffect,
+  useTransition: mountTransition,
 };
 
 const hooksDispatcherOnUpdate: Dispatcher = {
   useState: updateState,
   useEffect: updateEffect,
+  useTransition: updateTransition,
 };
 
 function updateEffect(create: EffectCallback | void, deps: EffectDeps | void) {
@@ -208,17 +211,17 @@ function updateState<State>(): [State, Dispatch<State>] {
     // 保存到current
     current.baseQueue = pending;
     queue.shared.pending = null;
+  }
 
-    if (baseQueue !== null) {
-      const {
-        memoizedState,
-        baseState: newBaseState,
-        baseQueue: newBaseQueue,
-      } = processUpdateQueue(baseState, baseQueue, renderLane);
-      hook.memoizedState = memoizedState;
-      hook.baseState = newBaseState;
-      hook.baseQueue = newBaseQueue;
-    }
+  if (baseQueue !== null) {
+    const {
+      memoizedState,
+      baseState: newBaseState,
+      baseQueue: newBaseQueue,
+    } = processUpdateQueue(baseState, baseQueue, renderLane);
+    hook.memoizedState = memoizedState;
+    hook.baseState = newBaseState;
+    hook.baseQueue = newBaseQueue;
   }
 
   return [hook.memoizedState, queue.dispatch as Dispatch<State>];
@@ -293,6 +296,7 @@ function mountState<State>(
   const updateQueue = createUpdateQueue();
   hook.updateQueue = updateQueue;
   hook.memoizedState = memoizedState;
+  hook.baseState = memoizedState;
 
   const dispatch = dispatchSetState.bind(
     null,
@@ -303,6 +307,33 @@ function mountState<State>(
   updateQueue.dispatch = dispatch;
 
   return [memoizedState, dispatch];
+}
+
+function mountTransition(): [boolean, (callback: () => void) => void] {
+  const [isPending, setPending] = mountState(false);
+  const hook = mountWorkInProgressHook();
+  const start = startTransition.bind(null, setPending);
+  hook.memoizedState = start;
+  return [isPending, start];
+}
+
+function updateTransition(): [boolean, (callback: () => void) => void] {
+  const [isPending] = updateState();
+  const hook = updateWorkInProgressHook();
+  const start = hook.memoizedState;
+  return [isPending as boolean, start];
+}
+
+function startTransition(setPending: Dispatch<boolean>, callback: () => void) {
+  setPending(true);
+
+  const prevTransition = currentBatchConfig.transition;
+  currentBatchConfig.transition = 1;
+
+  callback();
+  setPending(false);
+
+  currentBatchConfig.transition = prevTransition;
 }
 
 function dispatchSetState<State>(

@@ -87,11 +87,15 @@ function ensureRootIsScheduled(root: FiberRootNode) {
 
   let newCallbackNode: CallbackNode | null = null;
 
+  if (__DEV__) {
+    console.log(
+      `在${updateLane === SyncLane ? '微' : '宏'}任务调度优先：`,
+      updateLane
+    );
+  }
+
   if (updateLane === SyncLane) {
     // 同步优先级 微任务调度
-    if (__DEV__) {
-      console.log('同步优先级 微任务调度优先：', updateLane);
-    }
     scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
     scheduleMicroTask(flushSyncCallbacks);
   } else {

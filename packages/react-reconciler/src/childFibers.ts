@@ -270,6 +270,10 @@ function ChildReconciler(shouldTrackEffect: boolean) {
 
     // 判断当前的 fiber 类型
     if (typeof newChild === 'object' && newChild !== null) {
+      // 多节点情况
+      if (Array.isArray(newChild)) {
+        return reconcileChildArray(returnFiber, currentFiber, newChild);
+      }
       switch (newChild.$$typeof) {
         case REACT_ELEMENT_TYPE:
           return placeSingleChild(
@@ -280,10 +284,6 @@ function ChildReconciler(shouldTrackEffect: boolean) {
             console.warn('未实现的 reconcile 类型', newChild);
           }
           break;
-      }
-      // 多节点情况
-      if (Array.isArray(newChild)) {
-        return reconcileChildArray(returnFiber, currentFiber, newChild);
       }
     }
 
