@@ -2,6 +2,7 @@ import internals from 'shared/internals';
 import { FiberNode } from './fiber';
 import { Dispatcher, Dispatch } from 'react/src/currentDispatcher';
 import {
+  Update,
   UpdateQueue,
   createUpdate,
   createUpdateQueue,
@@ -25,6 +26,8 @@ export interface Hook {
   memoizedState: any;
   updateQueue: unknown;
   next: Hook | null;
+  baseState: any;
+  baseQueue: Update<any> | null;
 }
 
 export interface Effect {
@@ -186,16 +189,36 @@ function updateState<State>(): [State, Dispatch<State>] {
   // 实现update计算新state
 
   const queue = hook.updateQueue as UpdateQueue<State>;
+  const baseState = hook.baseState;
+
   const pending = queue.shared.pending;
-  queue.shared.pending = null;
+  let baseQueue = hook.baseQueue;
+  const current = currentHook as Hook;
 
   if (pending !== null) {
-    const { memoizedState } = processUpdateQueue(
-      hook.memoizedState,
-      pending,
-      renderLane
-    );
-    hook.memoizedState = memoizedState;
+    // pending baseQueue update保存在current中
+    if (baseQueue !== null) {
+      // 合并baseQueue，形成环状链表
+      const baseFirst = baseQueue.next;
+      const pendingFirst = pending.next;
+      baseQueue.next = pendingFirst;
+      pending.next = baseFirst;
+    }
+    baseQueue = pending;
+    // 保存到current
+    current.baseQueue = pending;
+    queue.shared.pending = null;
+
+    if (baseQueue !== null) {
+      const {
+        memoizedState,
+        baseState: newBaseState,
+        baseQueue: newBaseQueue,
+      } = processUpdateQueue(baseState, baseQueue, renderLane);
+      hook.memoizedState = memoizedState;
+      hook.baseState = newBaseState;
+      hook.baseQueue = newBaseQueue;
+    }
   }
 
   return [hook.memoizedState, queue.dispatch as Dispatch<State>];
@@ -233,6 +256,8 @@ function updateWorkInProgressHook(): Hook {
   const newHooks: Hook = {
     memoizedState: currentHook.memoizedState,
     updateQueue: currentHook.updateQueue,
+    baseState: currentHook.baseState,
+    baseQueue: currentHook.baseQueue,
     next: null,
   };
 
@@ -295,6 +320,8 @@ function mountWorkInProgressHook(): Hook {
   const hook: Hook = {
     memoizedState: null,
     updateQueue: null,
+    baseState: null,
+    baseQueue: null,
     next: null,
   };
 

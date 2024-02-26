@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-noop-renderer';
+import ReactDOM from 'react-dom/client';
 
 function App() {
+  const [num, updateNum] = useState(100);
   return (
-    <>
-      <Child />
-      <div>Hello word</div>
-    </>
+    <ul onClick={() => updateNum(50)}>
+      {new Array(num).fill(0).map((_, i) => (
+        <Child key={i}>{i}</Child>
+      ))}
+    </ul>
   );
 }
 
-function Child() {
-  return 'Child';
+function Child({ children }) {
+  const now = performance.now();
+  while (performance.now() - now < 4) {}
+  return <li>{children}</li>;
 }
 
-const root = ReactDOM.createRoot();
+const root = ReactDOM.createRoot(document.querySelector('#root')!);
 
 root.render(<App />);
-
-window.root = root;
