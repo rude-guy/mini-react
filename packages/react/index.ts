@@ -4,6 +4,7 @@ import currentDispatcher, {
   resolveDispatcher,
 } from './src/currentDispatcher';
 import currentBatchConfig from './src/currentBatchConfig';
+export { createContext } from './src/context';
 
 export const useState: Dispatcher['useState'] = (initialState) => {
   const dispatcher = resolveDispatcher();
@@ -23,6 +24,11 @@ export const useRef: Dispatcher['useRef'] = (initialVal) => {
 export const useTransition: Dispatcher['useTransition'] = () => {
   const dispatch = resolveDispatcher();
   return dispatch.useTransition();
+};
+
+export const useContext: Dispatcher['useContext'] = (context) => {
+  const dispatch = resolveDispatcher();
+  return dispatch.useContext(context);
 };
 
 // 内部数据共享层
