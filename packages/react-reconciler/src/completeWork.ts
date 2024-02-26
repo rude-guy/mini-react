@@ -13,11 +13,15 @@ import {
   HostRoot,
   HostText,
 } from './workTags';
-import { NoFlags, Update } from './fiberFlags';
+import { NoFlags, Ref, Update } from './fiberFlags';
 import { updateFiberProps } from 'react-dom/src/SyntheticEvent';
 
 function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
+}
+
+function markRef(fiber: FiberNode) {
+  fiber.flags |= Ref;
 }
 
 export const completeWork = (wip: FiberNode) => {
@@ -30,6 +34,10 @@ export const completeWork = (wip: FiberNode) => {
         // TODO: update
         // props 是否变化
         markUpdate(wip);
+        // 标记Ref
+        if (wip.ref !== current.ref) {
+          markRef(wip);
+        }
       } else {
         // mount
         // 1. 构建DOM
@@ -37,6 +45,10 @@ export const completeWork = (wip: FiberNode) => {
         // 2. 将DOM树插入到DOM中
         appendAllChildren(instance, wip);
         wip.stateNode = instance;
+        // 标记Ref
+        if (wip.ref !== null) {
+          markRef(wip);
+        }
       }
       bubbleProperties(wip);
       return null;

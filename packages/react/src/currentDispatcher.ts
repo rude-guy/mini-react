@@ -3,6 +3,7 @@ import { Action } from 'shared/ReactTypes';
 export interface Dispatcher {
   useState: <T>(initialState: () => T | T) => [T, Dispatch<T>];
   useEffect: (callback: () => void | void, deps: any[]) => void;
+  useRef: <T>(initialVal: T) => { current: T };
   useTransition: () => [boolean, (callback: () => void) => void];
 }
 

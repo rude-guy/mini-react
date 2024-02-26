@@ -15,6 +15,11 @@ export const useEffect: Dispatcher['useEffect'] = (create, deps) => {
   return dispatcher.useEffect(create, deps);
 };
 
+export const useRef: Dispatcher['useRef'] = (initialVal) => {
+  const dispatcher = resolveDispatcher();
+  return dispatcher.useRef(initialVal);
+};
+
 export const useTransition: Dispatcher['useTransition'] = () => {
   const dispatch = resolveDispatcher();
   return dispatch.useTransition();

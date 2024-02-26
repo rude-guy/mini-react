@@ -10,11 +10,13 @@ import { FiberNode, FiberRootNode, PendingPassiveEffect } from './fiber';
 import {
   ChildDeletion,
   Flags,
+  LayoutMask,
   MutationMask,
   NoFlags,
   PassiveEffect,
   PassiveMask,
   Placement,
+  Ref,
   Update,
 } from './fiberFlags';
 import {
@@ -28,34 +30,34 @@ import { HookHasEffect } from './hookEffectTags';
 
 let nextEffect: FiberNode | null;
 
-export const commitMutationEffect = (
-  finishedWork: FiberNode,
-  root: FiberRootNode
+export const commitEffects = (
+  phrase: 'mutation' | 'layout',
+  mask: Flags,
+  callback: (fiber: FiberNode, root: FiberRootNode) => void
 ) => {
-  nextEffect = finishedWork;
+  return (finishedWork: FiberNode, root: FiberRootNode) => {
+    nextEffect = finishedWork;
 
-  while (nextEffect !== null) {
-    // 向下遍历
-    const child: FiberNode | null = nextEffect.child;
-    // 子节点 subTreeFlags不存在或者子节点不存在 不需要进行更新操作
-    if (
-      (nextEffect.subTreeFlags & (MutationMask | PassiveMask)) !== NoFlags &&
-      child !== null
-    ) {
-      nextEffect = child;
-    } else {
-      // 向上遍历
-      up: while (nextEffect !== null) {
-        commitMutationEffectsOnFiber(nextEffect, root);
-        const sibling = nextEffect.sibling;
-        if (sibling !== null) {
-          nextEffect = sibling;
-          break up;
+    while (nextEffect !== null) {
+      // 向下遍历
+      const child: FiberNode | null = nextEffect.child;
+      // 子节点 subTreeFlags不存在或者子节点不存在 不需要进行更新操作
+      if ((nextEffect.subTreeFlags & mask) !== NoFlags && child !== null) {
+        nextEffect = child;
+      } else {
+        // 向上遍历
+        up: while (nextEffect !== null) {
+          callback(nextEffect, root);
+          const sibling = nextEffect.sibling;
+          if (sibling !== null) {
+            nextEffect = sibling;
+            break up;
+          }
+          nextEffect = nextEffect.return;
         }
-        nextEffect = nextEffect.return;
       }
     }
-  }
+  };
 };
 
 const commitMutationEffectsOnFiber = (
@@ -63,7 +65,7 @@ const commitMutationEffectsOnFiber = (
   root: FiberRootNode
 ) => {
   // flags Placement
-  const flags = finishedWork.flags;
+  const { flags, tag } = finishedWork;
   if ((flags & Placement) !== NoFlags) {
     commitPlacement(finishedWork);
     finishedWork.flags &= ~Placement;
@@ -92,7 +94,63 @@ const commitMutationEffectsOnFiber = (
     commitPassiveEffect(finishedWork, root, 'update');
     finishedWork.flags &= ~PassiveEffect;
   }
+
+  // fiber Ref
+  if ((flags & Ref) !== NoFlags && tag === HostComponent) {
+    // 解绑Ref
+    safelyDetachRef(finishedWork);
+  }
 };
+
+function safelyDetachRef(current: FiberNode) {
+  const ref = current.ref;
+  if (ref !== null) {
+    if (typeof ref === 'function') {
+      ref(null);
+    } else {
+      ref.current = null;
+    }
+  }
+}
+
+const commitLayoutEffectsOnFiber = (
+  finishedWork: FiberNode,
+  root: FiberRootNode
+) => {
+  // flags Ref
+  const { flags, tag } = finishedWork;
+  if ((flags & Ref) !== NoFlags && tag === HostComponent) {
+    // 新的Ref
+    safelyAttachRef(finishedWork);
+    finishedWork.flags &= ~Ref;
+  }
+};
+
+function safelyAttachRef(fiber: FiberNode) {
+  const ref = fiber.ref;
+  if (ref !== null) {
+    const instance = fiber.stateNode;
+    // 函数类型
+    if (typeof ref === 'function') {
+      ref(instance);
+    } else {
+      // 对象类型
+      ref.current = instance;
+    }
+  }
+}
+
+export const commitMutationEffects = commitEffects(
+  'mutation',
+  MutationMask | PassiveMask,
+  commitMutationEffectsOnFiber
+);
+
+export const commitLayoutEffects = commitEffects(
+  'layout',
+  LayoutMask,
+  commitLayoutEffectsOnFiber
+);
 
 function commitPassiveEffect(
   fiber: FiberNode,
@@ -184,14 +242,14 @@ function commitDeletion(childToDelete: FiberNode, root: FiberRootNode) {
   commitNestedComponent(childToDelete, (unmountFiber) => {
     switch (unmountFiber.tag) {
       case HostComponent:
-        // TODO: 解绑ref
         recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
+        // 解绑ref
+        safelyDetachRef(unmountFiber);
         return;
       case HostText:
         recordHostChildrenToDelete(rootChildrenToDelete, unmountFiber);
         return;
       case FunctionComponent:
-        // TODO: 解绑ref
         commitPassiveEffect(unmountFiber, root, 'unmount');
         break;
       default:
