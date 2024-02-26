@@ -25,3 +25,23 @@ function Child() {
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <App />
 );
+
+function Cpn() {}
+
+function a() {
+  const ctx = { Provider: <p></p> };
+
+  return (
+    <>
+      <ctx.Provider value={1}>
+        <Cpn />
+        <ctx.Provider value={2}>
+          <Cpn />
+          <ctx.Provider value={3}>
+            <Cpn />
+          </ctx.Provider>
+        </ctx.Provider>
+      </ctx.Provider>
+    </>
+  );
+}
