@@ -35,6 +35,11 @@ export const useContext: Dispatcher['useContext'] = (context) => {
   return dispatch.useContext(context);
 };
 
+export const use: Dispatcher['use'] = (useable) => {
+  const dispatch = resolveDispatcher();
+  return dispatch.use(useable);
+};
+
 // 内部数据共享层
 export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {
   currentDispatcher,

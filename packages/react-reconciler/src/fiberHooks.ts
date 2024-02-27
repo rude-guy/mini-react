@@ -9,12 +9,14 @@ import {
   enqueueUpdate,
   processUpdateQueue,
 } from './updateQueue';
-import { Action, ReactContext } from 'shared/ReactTypes';
+import { Action, ReactContext, Thenable, Useable } from 'shared/ReactTypes';
 import { scheduleUpdateOnFiber } from './workLoop';
 import { Lane, NoLane, requestUpdateLane } from './fiberLanes';
 import { Flags, PassiveEffect } from './fiberFlags';
 import { HookHasEffect, Passive } from './hookEffectTags';
 import currentBatchConfig from 'react/src/currentBatchConfig';
+import { REACT_CONTEXT_TYPE } from 'shared/ReactSymbols';
+import { trackUsedThenable } from './thenable';
 
 let currentlyRenderingFiber: FiberNode | null = null;
 let workInProgressHook: Hook | null = null;
@@ -82,6 +84,7 @@ const hooksDispatcherOnMount: Dispatcher = {
   useTransition: mountTransition,
   useRef: mountRef,
   useContext: readContext,
+  use,
 };
 
 const hooksDispatcherOnUpdate: Dispatcher = {
@@ -90,6 +93,7 @@ const hooksDispatcherOnUpdate: Dispatcher = {
   useTransition: updateTransition,
   useRef: updateRef,
   useContext: readContext,
+  use,
 };
 
 function updateEffect(create: EffectCallback | void, deps: EffectDeps | void) {
@@ -395,4 +399,18 @@ function readContext<T>(context: ReactContext<T>) {
   }
   const value = context._currentValue;
   return value;
+}
+
+function use<T>(useable: Useable<T>) {
+  if (useable !== null && typeof useable === 'object') {
+    if (typeof (useable as Thenable<T>).then === 'function') {
+      const thenable = useable as Thenable<T>;
+      return trackUsedThenable(thenable);
+    } else if ((useable as ReactContext<T>).$$typeof === REACT_CONTEXT_TYPE) {
+      const context = useable as ReactContext<T>;
+      return readContext(context);
+    }
+  }
+
+  throw new Error('不支持的useable参数: ' + useable);
 }
