@@ -43,6 +43,9 @@ export class FiberNode {
   subTreeFlags: Flags;
   deletions: FiberNode[] | null;
 
+  lanes: Lanes;
+  childLanes: Lanes;
+
   constructor(tag: WorkTag, pendingProps: Props, key: Key) {
     // 实例
     this.tag = tag;
@@ -69,6 +72,9 @@ export class FiberNode {
     this.flags = NoFlags;
     this.subTreeFlags = NoFlags;
     this.deletions = null;
+
+    this.lanes = NoLanes;
+    this.childLanes = NoLanes;
   }
 }
 
@@ -139,6 +145,8 @@ export const createWorkInProgress = (
   wip.memoizedProps = current.memoizedProps;
   wip.memoizedState = current.memoizedState;
   wip.ref = current.ref;
+  wip.lanes = current.lanes;
+  wip.childLanes = current.childLanes;
 
   return wip;
 };

@@ -20,6 +20,7 @@ import { NoFlags, Ref, Update, Visibility } from './fiberFlags';
 import { updateFiberProps } from 'react-dom/src/SyntheticEvent';
 import { popProvider } from './fiberContext';
 import { popSuspenseHandler } from './suspenseContext';
+import { NoLanes, mergeLanes } from './fiberLanes';
 
 function markUpdate(fiber: FiberNode) {
   fiber.flags |= Update;
@@ -150,13 +151,20 @@ function appendAllChildren(parent: Container | Instance, wip: FiberNode) {
 function bubbleProperties(wip: FiberNode) {
   let subTreeFlags = NoFlags;
   let child = wip.child;
+  let newChildLanes = NoLanes;
 
   while (child !== null) {
     subTreeFlags |= child.subTreeFlags;
     subTreeFlags |= child.flags;
 
+    newChildLanes = mergeLanes(
+      newChildLanes,
+      mergeLanes(child.lanes, child.childLanes)
+    );
+
     child.return = wip;
     child = child.sibling;
   }
   wip.subTreeFlags |= subTreeFlags;
+  wip.childLanes = newChildLanes;
 }
