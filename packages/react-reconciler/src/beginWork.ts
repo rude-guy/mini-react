@@ -251,6 +251,16 @@ function updateHostRoot(wip: FiberNode, renderLane: Lane) {
   const pending = updateQueue.shared.pending;
   updateQueue.shared.pending = null;
   const { memoizedState } = processUpdateQueue(baseState, pending, renderLane);
+
+  /**
+   * 挂起未完成状态（RootDidNotComplete），未进行commitWork，updateQueue.shared.pending 被置空状态会丢失，保存在current的memoizedState
+   * 因为没有进行commitWork, fiber的alternate是不会被切换的
+   */
+  const current = wip.alternate;
+  if (current !== null) {
+    current.memoizedState = memoizedState;
+  }
+
   wip.memoizedState = memoizedState;
 
   const nextChildren = wip.memoizedState;
