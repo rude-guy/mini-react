@@ -1,7 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 
-function delay(promise) {
+function delay(promise): Promise<any> {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(promise);

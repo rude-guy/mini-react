@@ -14,7 +14,9 @@ function App() {
 
 function Child({ children }) {
   const now = performance.now();
-  while (performance.now() - now < 4) {}
+  while (performance.now() - now < 4) {
+    //
+  }
   return <li>{children}</li>;
 }
 
