@@ -125,9 +125,6 @@ function collectPaths(
             } else {
               paths.bubble.push(eventCallback);
             }
-          } else {
-            console.warn(`${callbackName} is not defined`);
-            return;
           }
         });
       }

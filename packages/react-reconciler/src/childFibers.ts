@@ -344,6 +344,29 @@ function updateFragment(
   return fiber;
 }
 
+export function cloneChildFibers(wip: FiberNode) {
+  // child sibling
+  if (wip.child === null) {
+    return;
+  }
+
+  let currentChild = wip.child;
+  let newChild = createWorkInProgress(currentChild, currentChild.pendingProps);
+  wip.child = newChild;
+  newChild.return = wip;
+
+  if (currentChild.sibling !== null) {
+    currentChild = currentChild.sibling;
+    newChild = currentChild.sibling = createWorkInProgress(
+      currentChild,
+      currentChild.pendingProps
+    );
+    newChild.return = wip;
+  }
+
+  return wip.child;
+}
+
 // 追踪副作用 update
 export const reconcileChildFibers = ChildReconciler(true);
 
