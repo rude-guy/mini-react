@@ -41,6 +41,16 @@ export const use: Dispatcher['use'] = (useable) => {
   return dispatch.use(useable);
 };
 
+export const useCallback: Dispatcher['useCallback'] = (callback, deps) => {
+  const dispatch = resolveDispatcher();
+  return dispatch.useCallback(callback, deps);
+};
+
+export const useMemo: Dispatcher['useMemo'] = (nextCreate, deps) => {
+  const dispatch = resolveDispatcher();
+  return dispatch.useMemo(nextCreate, deps);
+};
+
 // 内部数据共享层
 export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {
   currentDispatcher,
