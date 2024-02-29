@@ -26,6 +26,7 @@ import currentBatchConfig from 'react/src/currentBatchConfig';
 import { REACT_CONTEXT_TYPE } from 'shared/ReactSymbols';
 import { trackUsedThenable } from './thenable';
 import { markWipReceivedUpdate } from './beginWork';
+import { readContext as readContextOrigin } from './fiberContext';
 
 let currentlyRenderingFiber: FiberNode | null = null;
 let workInProgressHook: Hook | null = null;
@@ -57,6 +58,11 @@ export interface FCUpdateQueue<State> extends UpdateQueue<State> {
 
 type EffectCallback = () => void;
 export type HookDeps = any[] | null;
+
+function readContext<Value>(context: ReactContext<Value>): Value {
+  const consumer = currentlyRenderingFiber as FiberNode;
+  return readContextOrigin(consumer, context);
+}
 
 export function renderWithHooks(
   wip: FiberNode,
@@ -441,15 +447,6 @@ function mountWorkInProgressHook(): Hook {
     workInProgressHook = hook;
   }
   return workInProgressHook;
-}
-
-function readContext<T>(context: ReactContext<T>) {
-  const consumer = currentlyRenderingFiber;
-  if (consumer === null) {
-    throw new Error('只能在函数组件中使用useContext');
-  }
-  const value = context._currentValue;
-  return value;
 }
 
 function use<T>(useable: Useable<T>) {

@@ -32,7 +32,11 @@ import {
   Placement,
   Ref,
 } from './fiberFlags';
-import { pushProvider } from './fiberContext';
+import {
+  prepareToReadContext,
+  propagateContextChange,
+  pushProvider,
+} from './fiberContext';
 import { pushSuspenseHandler } from './suspenseContext';
 import { shallowEqual } from 'shared/shallowEqual';
 
@@ -91,7 +95,7 @@ export const beginWork = (wip: FiberNode, renderLane: Lane) => {
     case Fragment:
       return updateFragment(wip);
     case ContextProvider:
-      return updateContextProvider(wip);
+      return updateContextProvider(wip, renderLane);
     case SuspenseComponent:
       return updateSuspenseComponent(wip);
     case OffscreenComponent:
@@ -321,12 +325,27 @@ function mountSuspenseFallbackChildren(
   return fallbackChildFragment;
 }
 
-function updateContextProvider(wip: FiberNode) {
+function updateContextProvider(wip: FiberNode, renderLane: Lane) {
   const provideType = wip.type;
   const context = provideType._context;
   const newProps = wip.pendingProps;
+  const oldProps = wip.memoizedProps;
+  const newValue = newProps.value;
 
   pushProvider(context, newProps.value);
+
+  if (oldProps !== null) {
+    const oldValue = oldProps.value;
+
+    if (
+      !Object.is(oldValue, newValue) &&
+      oldProps.children === newProps.children
+    ) {
+      return bailoutOnAlreadyFinishedWork(wip, renderLane);
+    } else {
+      propagateContextChange(wip, context, renderLane);
+    }
+  }
 
   const children = newProps.children;
   reconcileChildren(wip, children);
@@ -344,6 +363,8 @@ function updateFunctionComponent(
   Component: FiberNode['type'],
   renderLane: Lane
 ) {
+  prepareToReadContext(wip, renderLane);
+  // render
   const nextChildren = renderWithHooks(wip, Component, renderLane);
 
   const current = wip.alternate;
