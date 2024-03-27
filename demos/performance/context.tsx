@@ -1,17 +1,24 @@
-import React, { useState, useContext, createContext, memo } from 'react';
+import React, {
+  useState,
+  useContext,
+  createContext,
+  memo,
+  useMemo,
+} from 'react';
 
-const ctx = createContext(0);
+const ctx = createContext({ fn: () => {} });
 
 export default function App() {
-  const [num, update] = useState(0);
-  console.log('App render ', num);
+  const [num, update] = useState(1);
+  const context = useMemo(() => ({ fn: () => console.log('fn') }), []);
   return (
-    <ctx.Provider value={num}>
+    <ctx.Provider value={context}>
       <div
         onClick={() => {
-          update(1);
+          update((v) => v + 1);
         }}
       >
+        {num}
         <Cpn />
       </div>
     </ctx.Provider>
@@ -29,7 +36,7 @@ const Cpn = memo(function () {
 
 function Child() {
   console.log('Child render');
-  const val = useContext(ctx);
+  const context = useContext(ctx);
 
-  return <div>ctx: {val}</div>;
+  return <div>ctx: {context.num}</div>;
 }

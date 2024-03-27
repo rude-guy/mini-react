@@ -337,11 +337,10 @@ function updateContextProvider(wip: FiberNode, renderLane: Lane) {
   if (oldProps !== null) {
     const oldValue = oldProps.value;
 
-    if (
-      !Object.is(oldValue, newValue) &&
-      oldProps.children === newProps.children
-    ) {
-      return bailoutOnAlreadyFinishedWork(wip, renderLane);
+    if (Object.is(oldValue, newValue)) {
+      if (oldProps.children === newProps.children) {
+        return bailoutOnAlreadyFinishedWork(wip, renderLane);
+      }
     } else {
       propagateContextChange(wip, context, renderLane);
     }
