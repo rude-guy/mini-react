@@ -132,11 +132,11 @@ export const processUpdateQueue = <State>(
           newBaseQueueLast.next = clone;
           newBaseQueueLast = clone;
         }
-        const action = pendingUpdate.action;
-        if (pendingUpdate.hasEagerState) {
-          newState = pendingUpdate.eagerState!;
+        const action = pending.action;
+        if (pending.hasEagerState) {
+          newState = pending.eagerState!;
         } else {
-          newState = basicStateReducer(baseState, action);
+          newState = basicStateReducer(newState, action);
         }
       }
       pending = pending.next!;
